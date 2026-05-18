@@ -1,7 +1,7 @@
 [![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Aiogram](https://img.shields.io/badge/Aiogram-3.x-orange?logo=telegram&logoColor=white)](https://docs.aiogram.dev/)
 [![Poetry](https://img.shields.io/badge/Poetry-2.0+-blueviolet?logo=poetry&logoColor=white)](https://python-poetry.org/)
-[![Redis](https://img.shields.io/badge/redis-%23DC382D.svg?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/downloads/)
+[![Redis](https://img.shields.io/badge/Redis-7.x-%23DC382D?logo=redis&logoColor=white)](https://redis.io/downloads/)
 
 ## Vinland Downloader — Media Extraction Bot
 
