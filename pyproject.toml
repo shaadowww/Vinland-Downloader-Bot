@@ -1,0 +1,17 @@
+[project]
+name = "tg-vinland"
+version = "0.0.1"
+description = "@vinland_downloader_bot telegram bot for downloading media"
+authors = [
+    {name = "Vellih0r", name = "shaadowww", name = "Senku-qq"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiogram (>=3.28.2,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
