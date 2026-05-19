@@ -7,6 +7,10 @@ from pydantic import ConfigDict
 from pydantic import BaseModel, Field
 
 class VideoQuality(str, Enum):
+    '''
+    `User Prefer Enum`
+    '''
+    P360 = "360p"
     P480 = "480p"
     P720 = "720p"
     P1080 = "1080p"
