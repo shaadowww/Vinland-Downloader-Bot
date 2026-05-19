@@ -1,29 +1,69 @@
 import asyncio
+from typing import Optional
 
 class FakeDownloader:
-    def __init__(self):
-        self.tasks = []
-    async def fake_download(self, url):
-        '''
-        Simulation of downloading task
-        '''
+    def __init__(self, workers = 3, queue_size: int = 2):
+        self.queue = asyncio.Queue(maxsize=queue_size)
+
+        self.results: dict[int: list[str]] = {}
+        self.workers: int = workers
+
+    async def start_workers(self):
+        # create workers(consumers)
+        for i in range(self.workers):
+            asyncio.create_task(self.worker(i))
+            
+
+    async def fake_download(self, url: str) -> str:
+        """
+        Simulation of media downloading
+        """
         print(f'Downloading {url}')
-        asyncio.sleep(1)
-        print(f'Here is your .mp4 ...')
-        return f'{url}.mp4'
-        
-    def add_task(self, url):
-        self.tasks.append(url)
+        await asyncio.sleep(1)
 
-    async def run(self):
-        if not self.tasks:
-            return []
-        
-        # sem = asyncio.Semaphore(2)
-        results = []
-        for url in self.tasks:
-            res = await self.fake_download(url)
-            results.append(res)
+        result = f'{url}.mp4'
 
-        self.tasks.clear()
-        return results
+        print(f'Downloaded {url}')
+
+        return result
+    
+    async def add_url(self, url, user_id: int) -> None:
+        await self.queue.put((user_id, url))
+        if user_id not in self.results:
+            self.results[user_id] = []
+
+    async def worker(self, worker_id: int) -> None:
+        """
+        Async consumer, recives url from queue and downloads media
+        """
+        while True:
+            user_id, url = await self.queue.get()    
+
+            if url is None:
+                self.queue.task_done()
+                break
+
+            result = await self.fake_download(url)
+
+            self.results[user_id].append(result)
+            self.queue.task_done()
+
+    async def get_result(self, user_id: int) -> Optional[str]:
+        """
+        Get results for specific user by id
+        """
+        if user_id not in self.results:
+            print("User not found")
+            return None
+        result = self.results[user_id]
+        del self.results[user_id]
+        return result
+    
+    async def shutdown(self) -> None:
+        """
+        Graceful workers shutdown 
+        """
+        await self.queue.join()
+
+        for _ in range(self.workers):
+            await self.queue.put(None) # Sentinel for each worker to terminate
