@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 router = Router()
-downloader = FakeDownloader(workers=3, queue_size=2)
+downloader = FakeDownloader(workers=3, queue_size=10)
 
 
 @router.message(Command('start'))
