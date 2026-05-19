@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 router = Router()
-downloader = FakeDownloader()
+downloader = FakeDownloader(workers=3, queue_size=2)
 
 
 @router.message(Command('start'))
@@ -30,25 +30,34 @@ async def send_welcome(message: Message):
     """
     Hello message on `/start` or `/help` command
     """
-    await message.answer("Hi!\nI'm aiogram bot.")
+    await message.answer("Hi!\nI'm vinland downloader bot.")
 
 @router.message(Command('run'))
-async def bot_run_tasks(message: Message):
-    await message.answer(f"Start downloading")
-    results = await downloader.run()
+async def bot_get_results(message: Message):
+    """
+    Get results per user id
+    """
+
+    await message.answer(f"Starting downloads...")
+    
+    results = await downloader.get_result(message.from_user.id)
+
     await message.answer(f"Results: {results}")
 
 
 @router.message()
 async def bot_add_task(message: Message):
-    downloader.add_task(message.text)
-    print(downloader.tasks)
-    await message.answer(f"Task added!")
+    await downloader.add_url(
+        message.text,
+        message.from_user.id
+    )
+    await message.answer(f"URL added!")
 
 
 dp.include_router(router)
 
 async def main():
+    asyncio.create_task(downloader.start_workers())
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
