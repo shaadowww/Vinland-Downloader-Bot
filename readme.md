@@ -6,13 +6,21 @@
 ## Vinland Downloader — Media Extraction Bot
 
 Vinland Downloader is a high-performance, asynchronous Telegram bot designed to extract and convert media from YouTube and SoundCloud seamlessly. Inspired by the relentless spirit of voyagers, the bot cuts through platform restrictions, tracking scripts, and bloated web interfaces to deliver raw, high-quality audio and video files directly to your chat.
+
+## Installation Guide
+
+***Download required packages***: 
+
+`poetry install`
+
+
 ### Features
 
-    Dual-Mode Extraction: Download full-resolution video streams or extract high-bitrate audio tracks.
+    Download full-resolution video streams or extract high-bitrate audio tracks.
 
-    Multi-Platform Support: Fully compatible with YouTube and SoundCloud architectures.
+    Fully compatible with YouTube and SoundCloud architectures.
 
-    Zero Bloat: No advertisements, no paywalls, just immediate delivery.
+    No advertisements, no paywalls, just immediate delivery.
 
 ### The Tech Stack
 
