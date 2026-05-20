@@ -1,8 +1,8 @@
 *.pyc
-__pycache__
+__pycache__/
 pyproject.toml
 .env
 .venv
-./.vscode
+.vscode/
 poetry.lock
 poetry.toml
