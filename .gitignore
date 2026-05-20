@@ -4,3 +4,5 @@ pyproject.toml
 .env
 .venv
 ./.vscode
+poetry.lock
+poetry.toml
