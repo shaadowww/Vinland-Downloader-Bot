@@ -1,5 +1,6 @@
 import asyncio
 from typing import Optional
+import yt_downloader
 
 class FakeDownloader:
     def __init__(self, workers = 3, queue_size: int = 10):
@@ -13,6 +14,11 @@ class FakeDownloader:
         for worker_id in range(self.workers):
             asyncio.create_task(self.worker(worker_id))
             
+
+    async def download(self, url):
+        yt_downloader.youtube_download(url)
+
+        return './tg-vinland/tg_vinland_bot/video.mp4'
 
     async def fake_download(self, url: str) -> str:
         """
@@ -44,7 +50,7 @@ class FakeDownloader:
                 self.queue.task_done()
                 break
 
-            result = await self.fake_download(url)
+            result = await self.download(url)
 
             self.results[user_id].append(result)
             self.queue.task_done()

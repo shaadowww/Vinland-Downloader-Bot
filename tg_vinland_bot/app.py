@@ -3,6 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, Router
 from aiogram.types import Message
 from aiogram.filters import Command
+from aiogram.types import FSInputFile
 import asyncio
 
 from dotenv import load_dotenv
@@ -43,6 +44,9 @@ async def bot_get_results(message: Message):
     results = await downloader.get_result(message.from_user.id)
 
     await message.answer(f"Results: {results}")
+    video = FSInputFile(results[0])
+
+    await message.answer_video(video)
 
 
 @router.message()
