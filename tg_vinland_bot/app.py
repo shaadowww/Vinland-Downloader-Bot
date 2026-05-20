@@ -1,7 +1,7 @@
 import logging
 
-from aiogram import Bot, Dispatcher, Router
-from aiogram.types import Message
+from aiogram import Bot, Dispatcher, Router , F
+from aiogram.types import Message 
 from aiogram.filters import Command
 import asyncio
 
@@ -23,7 +23,8 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 router = Router()
 downloader = FakeDownloader(workers=3, queue_size=2)
-
+valid_url_regex = os.getenv('VALID_URL_REGEX')
+invalid_url_regex = os.getenv('INVALID_URl_REGEX')
 
 @router.message(Command('start'))
 async def send_welcome(message: Message):
@@ -45,15 +46,19 @@ async def bot_get_results(message: Message):
     await message.answer(f"Results: {results}")
 
 
-@router.message()
+@router.message(F.text.regexp(valid_url_regex))
 async def bot_add_task(message: Message):
-    await downloader.add_url(
-        message.text,
-        message.from_user.id
-    )
+    await downloader.add_url(message.text, message.from_user.id)
+    
     await message.answer(f"URL added!")
 
+@router.message(F.text.regexp(invalid_url_regex)) 
+async def bad_url(message: Message): 
+    await message.answer("Bad URL")
 
+@router.message()
+async def message(message: Message): 
+    await message.answer("Dont spam, i ignore u")
 dp.include_router(router)
 
 async def main():
