@@ -46,7 +46,7 @@ class DbSessionMiddleware(BaseMiddleware):
             return await handler(event, data)
 
 
-# Регистрируем мидлварь для всех текстовых сообщений роутера
+# Registrate middleware for all text messages
 router.message.middleware(DbSessionMiddleware(sessionmaker))
 
 
