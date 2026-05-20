@@ -9,7 +9,7 @@ import asyncio
 from dotenv import load_dotenv
 import os
 
-from backend import FakeDownloader
+from bot.backend import FakeDownloader
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
