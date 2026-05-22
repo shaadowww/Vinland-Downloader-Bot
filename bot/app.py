@@ -66,7 +66,22 @@ async def send_welcome(message: Message, session: AsyncSession):
 
 @router.message(Command('help'))
 async def send_help(msg: Message):
-    pass
+    """
+    Help message on `/help`
+    """
+    help_text = (
+        "<b>🏴‍☠️ Vinland Downloader Bot — Help Menu</b>\n\n"
+        "I'll help you to download video and audio from supported platforms (YouTube, SoundCloud).\n\n"
+        "<b>How to use it:</b>\n"
+        "Simply send a direct link to a video or audio track. In a few moments  I'll send your ready video !\n\n"
+        "<b>Available Commands:</b>\n"
+        "• /settings — Configure your default download quality (360p, 720p, 1080p).\n"
+        "• /help — Show this help menu.\n\n"
+        "<i>If the bot doesn't react to a link, please make sure the URL format is correct.</i>"
+    )
+
+    await msg.answer(help_text, parse_mode="HTML")
+
 
 @router.message(Command('settings'))
 async def settings_setup(msg: Message, session: AsyncSession):
