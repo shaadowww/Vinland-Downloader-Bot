@@ -1,8 +1,4 @@
 *.pyc
 __pycache__
 .env
-<<<<<<< HEAD
-.vscode
-=======
 .vscode/
->>>>>>> 2962f56 (changed gitignore)
