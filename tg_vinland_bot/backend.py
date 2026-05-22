@@ -1,5 +1,10 @@
 import asyncio
+import re
+import os
+
+from dotenv import load_dotenv
 from typing import Optional
+
 
 class FakeDownloader:
     def __init__(self, workers = 3, queue_size: int = 2):
@@ -7,7 +12,9 @@ class FakeDownloader:
 
         self.results: dict[int: list[str]] = {}
         self.workers: int = workers
-
+        self.pattern = os.getenv('pattern')
+        self.tries = 0 
+        self.max_tries = 3
     async def start_workers(self):
         # create workers(consumers)
         for i in range(self.workers):
@@ -27,7 +34,7 @@ class FakeDownloader:
 
         return result
     
-    async def add_url(self, url, user_id: int) -> None:
+    async def add_url(self, url, user_id: int) -> None: # regex
         await self.queue.put((user_id, url))
         if user_id not in self.results:
             self.results[user_id] = []
