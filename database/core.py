@@ -8,6 +8,7 @@ from typing import Optional, List
 
 async def upsert_user(session: AsyncSession, user_schema: UserCreate) -> UserRead:
     '''
+    `DATABASE` \n
     Creates an user or updates an existing user if they have changed their name
     '''
 
@@ -25,6 +26,7 @@ async def upsert_user(session: AsyncSession, user_schema: UserCreate) -> UserRea
 
 async def get_user(session: AsyncSession, telegram_id: int) -> Optional[UserRead]:
     '''
+    `DATABASE` \n
     Checks if there's a user and returning it
     '''
 
@@ -36,6 +38,7 @@ async def update_user(
         session: AsyncSession, telegram_id: int, user_schema: UserUpdate
     ) -> Optional[UserRead]:
     '''
+    `DATABASE` \n
     Updates specific user fields (e.g., `configuration`, `quality preferences`, or `username`)
     '''
 
@@ -44,7 +47,7 @@ async def update_user(
     if not user:
         return None 
 
-    update_data = user_schema.model_dump(exlude_unset=True)
+    update_data = user_schema.model_dump(exclude_unset=True)
 
     for key, val in update_data.items():
         setattr(user, key, val)
@@ -55,10 +58,11 @@ async def update_user(
 
 async def delete_user(session: AsyncSession, telegram_id: int) -> bool:
     '''
+    `DATABASE` \n
     Delete specified user from `Users` Model
     '''
 
-    user = session.get(Users, telegram_id)
+    user = await session.get(Users, telegram_id)
  
     if not user:
         return False
@@ -72,10 +76,11 @@ async def set_user_active_status(
         session: AsyncSession, telegram_id: int, is_active: bool
     ) -> bool:
     '''
+    `DATABASE` \n
     Fast toggle for user active status (used when user blocks/unblocks the bot)
     '''
 
-    user = session.get(Users, telegram_id)
+    user = await session.get(Users, telegram_id)
 
     if user is None:
         return False
@@ -88,10 +93,11 @@ async def set_user_active_status(
 
 async def get_all_active_users(session: AsyncSession) -> List[UserRead]:
     '''
+    `DATABASE` \n
     Returns a list of all active users for broad notifications 
     '''
 
-    query = select(Users).where(Users.is_active is True)
+    query = select(Users).where(Users.is_active == True)
 
     result = await session.execute(query)
     users = result.scalars().all()
