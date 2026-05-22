@@ -69,7 +69,10 @@ async def send_welcome(message: Message, session: AsyncSession):
     res = await upsert_user(session, user)
     logging.info(f"Upsert result: {res}")
 
-    await message.answer("Hi!\nI'm vinland downloader bot.")
+    await message.answer(
+        text="<b>Hi!\nI'm vinland downloader bot.n\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
+        parse_mode="HTML"
+    )
 
 @router.message(Command('help'))
 async def send_help(msg: Message):
@@ -91,7 +94,7 @@ async def send_help(msg: Message):
 
 
 @router.message(Command('settings'))
-async def show_settings(msg: Message, session: AsyncSession):
+async def show_settings(msg: Message):
     '''
     Displays configuration menu `/settings`
     '''
@@ -113,7 +116,7 @@ async def show_settings(msg: Message, session: AsyncSession):
     )
 
 @router.callback_query(QualityCallback.filter())
-async def quaity_selection_callback(
+async def quality_selection_callback(
     callback: CallbackQuery,
     callback_data: QualityCallback,
     session: AsyncSession
