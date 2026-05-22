@@ -11,7 +11,6 @@ class Settings(BaseSettings):
     DB_PORT: int
     DB_USERNAME: str
     DB_PASS: str
-    REDIS_URL: str
 
     @property
     def DB_URL(self):
@@ -22,6 +21,6 @@ class Settings(BaseSettings):
         # postgresql+asyncpg://USER:PASSWORD@HOST:PORT/DATABASE
         return f"postgresql+asyncpg://{self.DB_USERNAME}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
     
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 settings = Settings()
