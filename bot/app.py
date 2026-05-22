@@ -14,9 +14,8 @@ from bot.keyboards import QualityCallback
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import Users
 from database.schemas import UserCreate, UserUpdate
-from database.db_engines import sessionmaker, engine
+from database.db_engines import sessionmaker
 from database.core import set_user_active_status, update_user, upsert_user
 
 from config import settings
@@ -24,7 +23,11 @@ from config import settings
 from bot.backend import FakeDownloader
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s [%(asctime)s] - %(message)s",
+    datefmt="%H:%M:%S"
+)
 
 # Initialize bot and dispatcher
 bot = Bot(token=settings.BOT_TOKEN)
@@ -175,4 +178,7 @@ async def main():
 
 if __name__ == '__main__':
     # Basic startup function
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logging.info("The bot work is stopping...")

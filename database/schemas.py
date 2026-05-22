@@ -19,7 +19,7 @@ class VideoQuality(str, Enum):
 class UserBase(BaseModel):
     
     telegram_id: int
-    username: str | None = Field(default=None, ge=1, le=32)
+    username: str | None = Field(default=None, min_length=1, max_length=32)
     download_quality: VideoQuality = Field(default=VideoQuality.ASK)
     language_code: str | None = Field(default=None, max_length=10)
 
