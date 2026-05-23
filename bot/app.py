@@ -9,13 +9,6 @@ from bot.backend import FakeDownloader
 
 from config import settings
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s [%(asctime)s] - %(message)s",
-    datefmt="%H:%M:%S"
-)
-
 # Initialize bot and dispatcher
 if not settings.BOT_TOKEN:
     raise ValueError("BOT_TOKEN is missing")
