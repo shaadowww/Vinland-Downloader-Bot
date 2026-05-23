@@ -22,8 +22,6 @@ from database.core import set_user_active_status, update_user, upsert_user
 
 from backend import FakeDownloader
 
-load_dotenv()
-
 valid_url_regex = os.getenv('VALID_URL_REGEX')
 invalid_url_regex = os.getenv('INVALID_URl_REGEX')
 router = Router()
@@ -139,7 +137,7 @@ async def quality_selection_callback(
 
 
 @router.message(F.data == "Run")
-async def bot_get_results(message: Message, downloader: FakeDownloader, session: AsyncSession):
+async def bot_get_results(message: Message, downloader: FakeDownloader):
     """
     Get results per user id
     """
@@ -158,7 +156,7 @@ async def bot_get_results(message: Message, downloader: FakeDownloader, session:
 
 
 @router.message()
-async def bot_add_task(message: Message, downloader: FakeDownloader, session: AsyncSession):
+async def bot_add_task(message: Message, downloader: FakeDownloader):
     try:
         await downloader.add_url(
             message.text,
@@ -169,11 +167,11 @@ async def bot_add_task(message: Message, downloader: FakeDownloader, session: As
         await set_user_active_status(session, message.from_user.id, False)
 
 
-@router.message(F.text.regexp(invalid_url_regex), session: AsyncSession) 
+@router.message(F.text.regexp(invalid_url_regex)) 
 async def bad_url(message: Message): 
     await message.answer("Bad URL")
 
 @router.message()
-async def message(message: Message, session: AsyncSession): 
+async def message(message: Message): 
     await message.answer("Dont spam, i ignore u")
 
