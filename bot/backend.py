@@ -1,6 +1,6 @@
 import asyncio
 from typing import Optional
-import bot.yt_downloader as yt_downloader
+import bot.services.yt_downloader as yt_downloader
 
 class FakeDownloader:
     def __init__(self, workers = 3, queue_size: int = 10):

@@ -13,6 +13,13 @@ Vinland Downloader is a high-performance, asynchronous Telegram bot designed to 
 
 `poetry install`
 
+### Dependencies:
+- [python3] (https://www.python.org/downloads/)
+- poetry
+    `pip install poetry`
+- yt-dlp dependencies:
+    - [ffmpeg] (https://ffmpeg.org/)
+    - [java script runtime] (https://github.com/yt-dlp/yt-dlp/wiki/EJS#step-2-install-ejs-challenge-solver-scripts)
 
 ### Features
 
