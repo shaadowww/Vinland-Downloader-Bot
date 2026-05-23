@@ -3,19 +3,28 @@ import os
 
 FFMPEG_PATH = os.path.join("C:", os.sep, "ffmpeg", "bin", "ffmpeg.exe")
 DENO_PATH = os.path.join("C:", os.sep, "Deno", "deno.exe")
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def youtube_download(url, audio = False):
     ydl_opts = {
-        "js_runtimes": {
-            "deno": {
-                "path" : DENO_PATH
-            }
-        },
-        "ffmpeg_location": FFMPEG_PATH,
         "quiet": False,
         "nonplaylist": True,
-        "outtmpl" : "tg-vinland/bot/%(title)s.%(ext)s",
+        "outtmpl" : f"{dir_path}/%(title)s.%(ext)s",
     }
+    
+    if os.path.exists(FFMPEG_PATH):
+        ydl_opts.update({
+            "ffmpeg_location": FFMPEG_PATH,
+        })
+
+    if os.path.exists(DENO_PATH):
+        ydl_opts.update({
+            "js_runtimes": {
+                "deno": {
+                    "path" : DENO_PATH
+                }
+            },
+        })
 
     if audio:
         ydl_opts.update({
