@@ -16,9 +16,7 @@ class FakeDownloader:
             
 
     async def download(self, url):
-        yt_downloader.youtube_download(url)
-
-        return './tg-vinland/tg_vinland_bot/video.mp4'
+        return yt_downloader.youtube_download(url)
 
     async def fake_download(self, url: str) -> str:
         """

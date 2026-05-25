@@ -1,5 +1,5 @@
 [project]
-name = "tg_vinland_bot"
+name = "bot"
 version = "0.0.1"
 description = "@vinland_downloader_bot telegram bot for downloading media"
 authors = [

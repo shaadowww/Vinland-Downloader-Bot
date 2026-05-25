@@ -15,16 +15,16 @@ from aiogram.filters import Command
 from aiogram.types import FSInputFile, TelegramObject
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from sqlalchemy.ext.asyncio import AsyncSession
+# from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.schemas import UserCreate, UserUpdate
-from database.db_engines import sessionmaker
-from database.core import set_user_active_status, update_user, upsert_user
+# from database.schemas import UserCreate, UserUpdate
+# from database.db_engines import sessionmaker
+# from database.core import set_user_active_status, update_user, upsert_user
 
-from bot.backend import FakeDownloader
+from backend import FakeDownloader
 
-valid_url_regex = os.getenv('VALID_URL_REGEX')
-invalid_url_regex = os.getenv('INVALID_URl_REGEX')
+# valid_url_regex = os.getenv('VALID_URL_REGEX')
+# invalid_url_regex = os.getenv('INVALID_URl_REGEX')
 router = Router()
 
 # Configure logging
@@ -34,21 +34,21 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
-class DbSessionMiddleware(BaseMiddleware):
-    def __init__(self, session_pool: Any):
-        super().__init__()
-        self.session_pool = session_pool
+# class DbSessionMiddleware(BaseMiddleware):
+#     def __init__(self, session_pool: Any):
+#         super().__init__()
+#         self.session_pool = session_pool
 
-    async def __call__(
-        self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
-        data: Dict[str, Any]
-    ) -> Any:
+#     async def __call__(
+#         self,
+#         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+#         event: TelegramObject,
+#         data: Dict[str, Any]
+#     ) -> Any:
         
-        async with self.session_pool() as session:
-            data["session"] = session 
-            return await handler(event, data)
+#         async with self.session_pool() as session:
+#             data["session"] = session 
+#             return await handler(event, data)
 
 # Registrate middleware for all text messages
 # router.message.middleware(DbSessionMiddleware(sessionmaker))
@@ -144,7 +144,8 @@ async def send_help(msg: Message):
 #     )
 
 
-@router.message(F.data == "Run")
+# @router.message(F.data == "Run")
+# @router.message(Command('run'))
 async def bot_get_results(message: Message, downloader: FakeDownloader):
     """
     Get results per user id
@@ -154,11 +155,14 @@ async def bot_get_results(message: Message, downloader: FakeDownloader):
     await message.answer(f"Starting downloads...")
     
     results = await downloader.get_result(userid)
-
-    await message.answer(f"Results: {results}")
-    video = FSInputFile(results[0])
-
-    await message.answer_video(video)
+    if len(results) < 1:
+        await message.answer("Invalid url")
+    else:
+        file_path = results[0]
+        logging.debug(f"userid{userid} | download results: {results}")
+        video = FSInputFile(file_path)
+        await message.answer_video(video)
+        os.remove(file_path)
     # except TelegramForbiddenError:
     #     await set_user_active_status(session, userid, False)
 
@@ -170,16 +174,17 @@ async def bot_add_task(message: Message, downloader: FakeDownloader):
         message.text,
         message.from_user.id
     )
-    await message.answer(f"URL added!")
+    await bot_get_results(message, downloader)
+    # await message.answer(f"URL added!")
     # except TelegramForbiddenError:
     #     await set_user_active_status(session, message.from_user.id, False)
 
 
-@router.message(F.text.regexp(invalid_url_regex)) 
-async def bad_url(message: Message): 
-    await message.answer("Bad URL")
+# @router.message(F.text.regexp(invalid_url_regex)) 
+# async def bad_url(message: Message): 
+#     await message.answer("Bad URL")
 
-@router.message()
-async def message(message: Message): 
-    await message.answer("Dont spam, i ignore u")
+# @router.message()
+# async def message(message: Message): 
+#     await message.answer("Dont spam, i ignore u")
 

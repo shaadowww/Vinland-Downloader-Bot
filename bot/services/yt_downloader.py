@@ -44,7 +44,17 @@ def youtube_download(url, audio = False):
     
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+        info = ydl.extract_info(url, download=True)
+
+        file_path = ydl.prepare_filename(info)
+
+        if audio:
+            file_path = os.path.splitext(file_path)[0] + ".mp3"
+        
+        return file_path
 
 if __name__ == "__main__":
-    youtube_download("https://www.youtube.com/watch?v=2OC6ARG6fZA", audio=True)
+    youtube_download(
+        "https://www.youtube.com/watch?v=2OC6ARG6fZA",
+        audio=True
+    )

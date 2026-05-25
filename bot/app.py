@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import os
 
 from aiogram import Bot, Dispatcher
 
@@ -7,13 +8,17 @@ from bot.handlers import router
 
 from bot.backend import FakeDownloader
 
-from config import settings
+# from config import settings
+from dotenv import load_dotenv
+load_dotenv()
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 # Initialize bot and dispatcher
-if not settings.BOT_TOKEN:
-    raise ValueError("BOT_TOKEN is missing")
+# if not settings.BOT_TOKEN:
+#     raise ValueError("BOT_TOKEN is missing")
 
-bot = Bot(token=settings.BOT_TOKEN)
+# bot = Bot(token=settings.BOT_TOKEN)
+bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
 downloader = FakeDownloader(workers=3, queue_size=10)
 
