@@ -2,6 +2,14 @@ import asyncio
 from typing import Optional
 import bot.services.yt_downloader as yt_downloader
 
+# TODO
+# self.results -> redis or psotgre
+# statuses of downloads
+# semaphore?
+# asyncio events
+# pass object {bot} to workers to send videos from backend.py?
+# imports?
+
 class FakeDownloader:
     def __init__(self, workers = 3, queue_size: int = 10):
         self.queue = asyncio.Queue(maxsize=queue_size)

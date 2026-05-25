@@ -68,7 +68,7 @@ async def send_welcome(message: Message):
     # logging.info(f"Upsert result: {res}")
 
     await message.answer(
-        text="<b>Hi!\nI'm vinland downloader bot.n\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
+        text="<b>Hi!\nI'm vinland downloader bot.\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
         parse_mode="HTML",
         reply_markup=kb.work
         )
@@ -159,9 +159,15 @@ async def bot_get_results(message: Message, downloader: FakeDownloader):
         await message.answer("Invalid url")
     else:
         file_path = results[0]
+    if not os.path.exists(file_path):
+        logging.error(f"Invalid path {file_path}")
+        return None
+
+    try:
         logging.debug(f"userid{userid} | download results: {results}")
         video = FSInputFile(file_path)
         await message.answer_video(video)
+    finally:
         os.remove(file_path)
     # except TelegramForbiddenError:
     #     await set_user_active_status(session, userid, False)
