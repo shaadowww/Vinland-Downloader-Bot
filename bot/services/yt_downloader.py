@@ -3,13 +3,17 @@ import os
 
 FFMPEG_PATH = os.path.join("C:", os.sep, "ffmpeg", "bin", "ffmpeg.exe")
 DENO_PATH = os.path.join("C:", os.sep, "Deno", "deno.exe")
-dir_path = os.path.dirname(os.path.realpath(__file__))
+
+output_dir = 'downloads'
+os.makedirs(output_dir, exist_ok=True)
+# dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def youtube_download(url, audio = False):
     ydl_opts = {
-        "quiet": False,
-        "nonplaylist": True,
-        "outtmpl" : f"{dir_path}/%(title)s.%(ext)s",
+        "quiet": True,
+        "max_filesize": 50 * 1024 * 1025,
+        "noplaylist": True,
+        "outtmpl" : f"{output_dir}/%(title)s.%(ext)s",
     }
     
     if os.path.exists(FFMPEG_PATH):
@@ -38,7 +42,7 @@ def youtube_download(url, audio = False):
 
     else:
         ydl_opts.update({
-            "format": "bestvideo+bestaudio/best",
+            "format": "bestvideo[ext=m4a]+bestaudio[ext=m4a]/best[ext=mp4]/best",
             "merge_output_format": "mp4",
         })
     

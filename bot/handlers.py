@@ -21,8 +21,6 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 # from database.db_engines import sessionmaker
 # from database.core import set_user_active_status, update_user, upsert_user
 
-from backend import FakeDownloader
-
 # valid_url_regex = os.getenv('VALID_URL_REGEX')
 # invalid_url_regex = os.getenv('INVALID_URl_REGEX')
 router = Router()
@@ -143,48 +141,21 @@ async def send_help(msg: Message):
 #         parse_mode="HTML"
 #     )
 
-
-# @router.message(F.data == "Run")
-# @router.message(Command('run'))
-async def bot_get_results(message: Message, downloader: FakeDownloader):
-    """
-    Get results per user id
-    """
-    # try:
-    userid = message.from_user.id
-    await message.answer(f"Starting downloads...")
-    
-    results = await downloader.get_result(userid)
-    if len(results) < 1:
-        await message.answer("Invalid url")
-    else:
-        file_path = results[0]
-    if not os.path.exists(file_path):
-        logging.error(f"Invalid path {file_path}")
-        return None
-
-    try:
-        logging.debug(f"userid{userid} | download results: {results}")
-        video = FSInputFile(file_path)
-        await message.answer_video(video)
-    finally:
-        os.remove(file_path)
-    # except TelegramForbiddenError:
-    #     await set_user_active_status(session, userid, False)
-
-
+# TODO
+# add animation to waiting message...
+# choose format via buttons
 @router.message()
-async def bot_add_task(message: Message, downloader: FakeDownloader):
+async def bot_add_task(message: Message, downloader: object):
     # try:
+    await message.answer("Working on it...")
     await downloader.add_url(
         message.text,
-        message.from_user.id
+        message.from_user.id,
+        format =  downloader.Format.AUDIO # !!!
     )
-    await bot_get_results(message, downloader)
     # await message.answer(f"URL added!")
     # except TelegramForbiddenError:
     #     await set_user_active_status(session, message.from_user.id, False)
-
 
 # @router.message(F.text.regexp(invalid_url_regex)) 
 # async def bad_url(message: Message): 
