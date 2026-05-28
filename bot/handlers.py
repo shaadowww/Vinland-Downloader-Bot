@@ -21,8 +21,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 # from database.db_engines import sessionmaker
 # from database.core import set_user_active_status, update_user, upsert_user
 
-# valid_url_regex = os.getenv('VALID_URL_REGEX')
-# invalid_url_regex = os.getenv('INVALID_URl_REGEX')
+valid_url_regex = r'(?<!\S)https://(?:www\.)?(?:[a-zA-Z0-9-]+\.)?(?:youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com)\S+'
+invalid_url_regex = r'^https://(?!(www\.)?([a-zA-Z0-9-]+\.)?(youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com))\S+'
 router = Router()
 
 # Configure logging
@@ -99,13 +99,13 @@ async def send_help(msg: Message):
 
 #     builder = InlineKeyboardBuilder()
 
-#     builder.button(text="360p", callback_data=kb.QualityCallback(quality="360p"))
-#     builder.button(text="480p", callback_data=kb.QualityCallback(quality="480p"))
-#     builder.button(text="720p", callback_data=kb.QualityCallback(quality="720p"))
-#     builder.button(text="1080p", callback_data=kb.QualityCallback(quality="1080p"))
+#    for q in ["360p", "480p", "720p", "1080p"]:
+#       builder.button(text=q, callback_data=kb.QualityCallback(quality=q))
+#     builder.button(text="Audio", callback_data=kb.FormatCallback(format="audio"))
+#     builder.button(text="Video", callback_data=kb.FormatCallback(format="video"))
 #     builder.button(text="Always Ask", callback_data=kb.QualityCallback(quality="ask"))
 
-#     builder.adjust(4, 1)
+#     builder.adjust(4, 2, 1)
 
 #     await msg.answer(
 #         text="<b>⚙️ Settings</b>\n\nSelect your default video download quality:",
@@ -140,18 +140,38 @@ async def send_help(msg: Message):
 #         text=f"<b> ✓ Settings Saved</b>\n\nDefault download quality updated to: <b>{readable_quality}</b>",
 #         parse_mode="HTML"
 #     )
-
+# @router.callback_query(kb.FormatCallback.filter())
+# async def format_selection_callback(
+#     callback: CallbackQuery,
+#     callback_data: kb.FormatCallback,
+#     session: AsyncSession
+#  )
+#     '''
+#     Processing format callback selection
+#     '''
+#     telegram_id = callback.from_user.id
+#     selected_format = UserUpdate(
+#         download_format=callback.data.format 
+#     )
+    
+#     await update_user(session, telegram_id, selected_format)
+#     await callback.answer(text=f"format set to {callback_data.format}")
+    
+#     await callback.message.edit_text(
+#         text=f"<b> ✓ Settings Saved</b>\n\nDefault format updated to: <b>{callback_data.format.upper()}</b>",
+#         parse_mode="HTML"
 # TODO
 # add animation to waiting message...
 # choose format via buttons
-@router.message()
-async def bot_add_task(message: Message, downloader: object):
+
+@router.message(F.text.regexp(valid_url_regex))
+async def bot_add_task(message: Message, downloader: object): # add session: AsyncSession)
     # try:
     await message.answer("Working on it...")
     await downloader.add_url(
         message.text,
         message.from_user.id,
-        format =  downloader.Format.AUDIO # !!!
+        format =  downloader.Format.VIDEO # !!!
     )
     # await message.answer(f"URL added!")
     # except TelegramForbiddenError:

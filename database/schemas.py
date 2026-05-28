@@ -16,11 +16,16 @@ class VideoQuality(str, Enum):
     P1080 = "1080p"
     ASK = "ask"
 
+class DownloadFormat(str, Enum):
+    AUDIO = "audio"
+    VIDEO = "video"
+
 class UserBase(BaseModel):
     
     telegram_id: int
     username: str | None = Field(default=None, min_length=1, max_length=32)
     download_quality: VideoQuality = Field(default=VideoQuality.ASK)
+    download_format: DownloadFormat = Field(default=DownloadFormat.AUDIO)
     language_code: str | None = Field(default=None, max_length=10)
 
 class UserCreate(UserBase):
@@ -30,6 +35,7 @@ class UserUpdate(BaseModel):
     
     username: str | None = Field(default=None, max_length=32)
     download_quality: VideoQuality | None = Field(default=None)
+    download_format: DownloadFormat | None = Field(default=None)
     is_active: bool | None = Field(default=None)
     language_code: str | None = Field(default=None, max_length=10)
 
