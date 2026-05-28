@@ -32,40 +32,27 @@ class FakeDownloader:
         for worker_id in range(self.workers):
             asyncio.create_task(self.worker(worker_id))
 
-    async def download(self, url, is_audio: bool):
-        result = await asyncio.to_thread(yt_downloader.youtube_download, url, is_audio)
-        return result
-
-    async def fake_download(self, url: str) -> str:
-        """
-        Simulation of media downloading
-        """
-        print(f'Downloading {url}')
-        await asyncio.sleep(1)
-
-        result = f'{url}.mp4'
-
-        print(f'Downloaded {url}')
-
+    async def download(self, url, quality: int, is_audio: bool):
+        result = await asyncio.to_thread(yt_downloader.youtube_download, url, quality, is_audio)
         return result
     
-    async def add_url(self, url, chat_id: int, format: Format) -> None:
-        await self.queue.put((chat_id, url, format))
+    async def add_url(self, url, chat_id: int, quality: int, format: Format) -> None:
+        await self.queue.put((chat_id, url, quality, format))
 
     async def worker(self, worker_id: int) -> None:
         """
         Async consumer, recives url from queue and downloads media
         """
         while True:
-            chat_id, url, format = await self.queue.get()  
+            chat_id, url, quality, format = await self.queue.get()  
             if chat_id is None: break
 
             try:
                 logging.info(f"Downloading {url}")
                 is_audio = False
-                if format == self.Format.AUDIO:
+                if format == 'audio':
                     is_audio = True
-                file_path = await self.download(url, is_audio)
+                file_path = await self.download(url, quality, is_audio)
                 logging.debug(f"Downloaded! path - {file_path}")
 
                 if os.path.exists(file_path):

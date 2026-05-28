@@ -8,10 +8,11 @@ output_dir = 'downloads'
 os.makedirs(output_dir, exist_ok=True)
 # dir_path = os.path.dirname(os.path.realpath(__file__))
 
-def youtube_download(url, audio = False):
+def youtube_download(url, quality = 720, audio = False):
     ydl_opts = {
         "quiet": True,
-        "max_filesize": 50 * 1024 * 1025,
+        "restrictfilenames": True,
+        "max_filesize": 50 * 1024 * 1024,
         "noplaylist": True,
         "outtmpl" : f"{output_dir}/%(title)s.%(ext)s",
     }
@@ -41,10 +42,16 @@ def youtube_download(url, audio = False):
         })
 
     else:
-        ydl_opts.update({
-            "format": "bestvideo[ext=m4a]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-            "merge_output_format": "mp4",
-        })
+        if quality in (360, 480, 720, 1080):
+            ydl_opts.update({
+                "format": f"bestvideo[height<={quality}]+bestaudio/bestst",
+                "merge_output_format": "mp4",
+            })
+        else:
+            ydl_opts.update({
+                "format": "bestvideo+bestaudio/best",
+                "merge_output_format": "mp4",
+            })
     
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
