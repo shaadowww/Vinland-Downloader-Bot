@@ -1,13 +1,15 @@
 from dotenv import load_dotenv
 import os
 import logging
+import redis.asyncio as redis
+from json import dumps
 
 from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import Router , F, BaseMiddleware
 from aiogram.types import Message , CallbackQuery
 from aiogram.filters import Command
-import bot.keyboards as kb
+import keyboards as kb
 
 from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import CallbackQuery, Message
@@ -90,7 +92,6 @@ async def send_help(msg: Message):
 
     await msg.answer(help_text, parse_mode="HTML")
 
-
 # @router.message(Command('settings'))
 # async def show_settings(msg: Message):
 #     '''
@@ -165,14 +166,29 @@ async def send_help(msg: Message):
 # choose format via buttons
 
 @router.message(F.text.regexp(valid_url_regex))
-async def bot_add_task(message: Message, downloader: object): # add session: AsyncSession)
+async def bot_add_task(message: Message): # add session: AsyncSession)
     # try:
     await message.answer("Working on it...")
-    await downloader.add_url(
+    await queue_add(
+        message.chat.id,
         message.text,
-        message.from_user.id,
-        format =  downloader.Format.VIDEO # !!!
-    )
+        quality = 720,
+        format = "audio"
+        )
+
+async def queue_add(chat_id: int, url: str, quality: int, format: str):
+    async with redis.Redis(
+        host='redis', port=6379, decode_responses=True
+    ) as r:
+        await r.lpush(
+            'download_queue',
+            dumps({
+                "chat_id": chat_id, 
+                "url": url,
+                "quality": quality,
+                "format": format
+                })
+            )
     # await message.answer(f"URL added!")
     # except TelegramForbiddenError:
     #     await set_user_active_status(session, message.from_user.id, False)

@@ -10,7 +10,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 def youtube_download(url, quality = 720, audio = False):
     ydl_opts = {
-        "quiet": True,
+        "quiet": False,
         "restrictfilenames": True,
         "max_filesize": 50 * 1024 * 1024,
         "noplaylist": True,

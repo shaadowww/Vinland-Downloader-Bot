@@ -4,9 +4,8 @@ import os
 
 from aiogram import Bot, Dispatcher
 
-from bot.handlers import router
+from handlers import router
 
-from bot.backend import FakeDownloader
 
 # from config import settings
 from dotenv import load_dotenv
@@ -20,22 +19,13 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 # bot = Bot(token=settings.BOT_TOKEN)
 bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
-downloader = FakeDownloader(bot, workers=3, queue_size=10)
-
-
 
 dp.include_router(router)
 
 async def main():
-    asyncio.create_task(downloader.start_workers())
-    await dp.start_polling(bot, downloader=downloader)
-
-async def stop_downloader():
-    await downloader.shutdown()
-
+    await dp.start_polling(bot)
 if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         logging.debug("The bot work is stopping...")
-        asyncio.run(stop_downloader())

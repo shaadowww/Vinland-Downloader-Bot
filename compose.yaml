@@ -1,20 +1,51 @@
-services: 
-  app: 
-    build: . 
+services:
+
+  bot:
+    image: senkuqq/vinland_bot:latest
+    restart: unless-stopped
+    ports: 
+      - "6767:6767"
     env_file:
       - .env
-    depends_on:
-      - db
-    restart: unless-stopped
-  db: 
-    image: postgres:16
     environment:
-    -  POSTGRES_USER=${DB_USERNAME}
-    -  POSTGRES_DB=${DB_NAME}
-    -  POSTGRES_PASSWORD=${DB_PASS}
-    volumes: 
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped 
+      - BOT_TOKEN=${BOT_TOKEN}
+    depends_on:
+      #- postgres
+      - redis
 
+  downloader:
+    image: senkuqq/vinland_downloader:latest
+    restart: unless-stopped
+    ports: 
+      - "67:67"
+    env_file:
+      - .env
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    depends_on:
+      # - postgres
+      - redis
+      - bot
+
+  # postgres:
+  #   image: postgres:17
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5432:5432"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     POSTGRES_DB: ${DB_NAME}
+  #     POSTGRES_USER: ${DB_USERNAME}
+  #     POSTGRES_PASSWORD: ${DB_PASS}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports: 
+      - "6379:6379" 
+      
 volumes:
   postgres_data:

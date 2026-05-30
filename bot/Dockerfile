@@ -2,17 +2,12 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    ffmpeg \ 
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get purge -y --auto-remove && rm -rf /var/lib/apt/lists/*
 
-RUN pip install poetry 
+COPY requirements.txt .
 
-COPY pyproject.toml poetry.lock ./
+RUN pip install --no-cache-dir -r requirements.txt 
 
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-root 
+COPY . . 
 
-COPY . .
-
-CMD ["python", "app.py"]
+CMD ["python","app.py"]
