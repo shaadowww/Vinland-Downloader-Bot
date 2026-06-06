@@ -9,6 +9,10 @@ os.makedirs(output_dir, exist_ok=True)
 # dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def youtube_download(url, quality = 720, audio = False):
+    # ban personal playlists
+    if "/sets/" in url:
+        raise ValueError("SoundCloud playlists are not supported")
+
     ydl_opts = {
         "quiet": False,
         "restrictfilenames": True,
@@ -55,6 +59,14 @@ def youtube_download(url, quality = 720, audio = False):
     
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+
+        # block playlists
+        if "entries" in info:
+            raise ValueError("Playlist detected")
+        if info.get("_type") == "playlist":
+            raise ValueError("Playlist detected")
+        
         info = ydl.extract_info(url, download=True)
 
         file_path = ydl.prepare_filename(info)

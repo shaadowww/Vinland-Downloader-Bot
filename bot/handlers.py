@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-import os
 import logging
 import redis.asyncio as redis
 from json import dumps
@@ -17,11 +15,11 @@ from aiogram.filters import Command
 from aiogram.types import FSInputFile, TelegramObject
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-# from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# from database.schemas import UserCreate, UserUpdate
-# from database.db_engines import sessionmaker
-# from database.core import set_user_active_status, update_user, upsert_user
+from bot.database.schemas import UserCreate, UserUpdate
+from bot.database.db_engines import sessionmaker
+from bot.database.core import set_user_active_status, update_user, upsert_user
 
 valid_url_regex = r'(?<!\S)https://(?:www\.)?(?:[a-zA-Z0-9-]+\.)?(?:youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com)\S+'
 invalid_url_regex = r'^https://(?!(www\.)?([a-zA-Z0-9-]+\.)?(youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com))\S+'
@@ -34,43 +32,42 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
-# class DbSessionMiddleware(BaseMiddleware):
-#     def __init__(self, session_pool: Any):
-#         super().__init__()
-#         self.session_pool = session_pool
+class DbSessionMiddleware(BaseMiddleware):
+    def __init__(self, session_pool: Any):
+        super().__init__()
+        self.session_pool = session_pool
 
-#     async def __call__(
-#         self,
-#         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-#         event: TelegramObject,
-#         data: Dict[str, Any]
-#     ) -> Any:
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any]
+    ) -> Any:
         
-#         async with self.session_pool() as session:
-#             data["session"] = session 
-#             return await handler(event, data)
+        async with self.session_pool() as session:
+            data["session"] = session 
+            return await handler(event, data)
 
 # Registrate middleware for all text messages
-# router.message.middleware(DbSessionMiddleware(sessionmaker))
-# router.callback_query.middleware(DbSessionMiddleware(sessionmaker))
+router.message.middleware(DbSessionMiddleware(sessionmaker))
+router.callback_query.middleware(DbSessionMiddleware(sessionmaker))
     
 
 @router.message(Command('start'))
-async def send_welcome(message: Message):
+async def send_welcome(message: Message, session: AsyncSession):
     """
     Welcome message on `/start`
     """
-    # user = UserCreate(
-    #     telegram_id=message.from_user.id,
-    #     username=message.from_user.username
-    # )
-    # res = await upsert_user(session, user)
-    # logging.info(f"Upsert result: {res}")
+    user = UserCreate(
+        telegram_id=message.from_user.id,
+        username=message.from_user.username
+    )
+    res = await upsert_user(session, user)
+    logging.info(f"Upsert result: {res}")
 
     await message.answer(
         text="<b>Hi!\nI'm vinland downloader bot.\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
-        parse_mode="HTML",
-        reply_markup=kb.work
+        parse_mode="HTML"
         )
     
 
@@ -92,75 +89,77 @@ async def send_help(msg: Message):
 
     await msg.answer(help_text, parse_mode="HTML")
 
-# @router.message(Command('settings'))
-# async def show_settings(msg: Message):
-#     '''
-#     Displays configuration menu `/settings`
-#     '''
+@router.message(Command('settings'))
+async def show_settings(msg: Message):
+    '''
+    Displays configuration menu `/settings`
+    '''
 
-#     builder = InlineKeyboardBuilder()
+    builder = InlineKeyboardBuilder()
 
-#    for q in ["360p", "480p", "720p", "1080p"]:
-#       builder.button(text=q, callback_data=kb.QualityCallback(quality=q))
-#     builder.button(text="Audio", callback_data=kb.FormatCallback(format="audio"))
-#     builder.button(text="Video", callback_data=kb.FormatCallback(format="video"))
-#     builder.button(text="Always Ask", callback_data=kb.QualityCallback(quality="ask"))
+    for q in ["360p", "480p", "720p", "1080p"]:
+        builder.button(text=q, callback_data=kb.QualityCallback(quality=q))
+        builder.button(text="Audio", callback_data=kb.FormatCallback(format="audio"))
+        builder.button(text="Video", callback_data=kb.FormatCallback(format="video"))
+        builder.button(text="Always Ask", callback_data=kb.QualityCallback(quality="ask"))
 
-#     builder.adjust(4, 2, 1)
+        builder.adjust(4, 2, 1)
 
-#     await msg.answer(
-#         text="<b>⚙️ Settings</b>\n\nSelect your default video download quality:",
-#         reply_markup=builder.as_markup(),
-#         parse_mode="HTML"
-#     )
+        await msg.answer(
+            text="<b>⚙️ Settings</b>\n\nSelect your default video download quality:",
+            reply_markup=builder.as_markup(),
+            parse_mode="HTML"
+        )
 
 
-# @router.callback_query(kb.QualityCallback.filter())
-# async def quality_selection_callback(
-#     callback: CallbackQuery,
-#     callback_data: kb.QualityCallback,
-#     session: AsyncSession
-# ):
-#     '''
-#     Processing quality callback selection
-#     '''
+@router.callback_query(kb.QualityCallback.filter())
+async def quality_selection_callback(
+    callback: CallbackQuery,
+    callback_data: kb.QualityCallback,
+    session: AsyncSession
+):
+    '''
+    Processing quality callback selection
+    '''
 
-#     telegram_id = callback.from_user.id
-#     selected_quality = UserUpdate(
-#         download_quality=callback_data.quality
-#     )
+    telegram_id = callback.from_user.id
+    selected_quality = UserUpdate(
+        download_quality=callback_data.quality
+    )
 
-#     await update_user(session, telegram_id, selected_quality)
+    await update_user(session, telegram_id, selected_quality)
 
-#     await callback.answer(
-#         text=f"Quality set to {callback_data.quality}"
-#     )
+    await callback.answer(
+        text=f"Quality set to {callback_data.quality}"
+    )
 
-#     readable_quality = "Always ask" if callback_data.quality == "ask" else callback_data.quality
-#     await callback.message.edit_text(
-#         text=f"<b> ✓ Settings Saved</b>\n\nDefault download quality updated to: <b>{readable_quality}</b>",
-#         parse_mode="HTML"
-#     )
-# @router.callback_query(kb.FormatCallback.filter())
-# async def format_selection_callback(
-#     callback: CallbackQuery,
-#     callback_data: kb.FormatCallback,
-#     session: AsyncSession
-#  )
-#     '''
-#     Processing format callback selection
-#     '''
-#     telegram_id = callback.from_user.id
-#     selected_format = UserUpdate(
-#         download_format=callback.data.format 
-#     )
+    readable_quality = "Always ask" if callback_data.quality == "ask" else callback_data.quality
+    await callback.message.edit_text(
+        text=f"<b> ✓ Settings Saved</b>\n\nDefault download quality updated to: <b>{readable_quality}</b>",
+        parse_mode="HTML"
+    )
+
+@router.callback_query(kb.FormatCallback.filter())
+async def format_selection_callback(
+    callback: CallbackQuery,
+    callback_data: kb.FormatCallback,
+    session: AsyncSession
+    ):
+    '''
+    Processing format callback selection
+    '''
+    telegram_id = callback.from_user.id
+    selected_format = UserUpdate(
+        download_format=callback.data.format 
+    )
     
-#     await update_user(session, telegram_id, selected_format)
-#     await callback.answer(text=f"format set to {callback_data.format}")
+    await update_user(session, telegram_id, selected_format)
+    await callback.answer(text=f"format set to {callback_data.format}")
     
-#     await callback.message.edit_text(
-#         text=f"<b> ✓ Settings Saved</b>\n\nDefault format updated to: <b>{callback_data.format.upper()}</b>",
-#         parse_mode="HTML"
+    await callback.message.edit_text(
+        text=f"<b> ✓ Settings Saved</b>\n\nDefault format updated to: <b>{callback_data.format.upper()}</b>",
+        parse_mode="HTML"
+    )
 # TODO
 # add animation to waiting message...
 # choose format via buttons
@@ -176,7 +175,9 @@ async def bot_add_task(message: Message): # add session: AsyncSession)
         format = "audio"
         )
 
+# REDIS
 async def queue_add(chat_id: int, url: str, quality: int, format: str):
+    # try:
     async with redis.Redis(
         host='redis', port=6379, decode_responses=True
     ) as r:
@@ -189,13 +190,15 @@ async def queue_add(chat_id: int, url: str, quality: int, format: str):
                 "format": format
                 })
             )
-    # await message.answer(f"URL added!")
+    #     await message.answer(f"URL added!")
     # except TelegramForbiddenError:
+    # TODO
+    # переписать user.id на chat_id так как тут анриал получить userid, по-моему
     #     await set_user_active_status(session, message.from_user.id, False)
 
-# @router.message(F.text.regexp(invalid_url_regex)) 
-# async def bad_url(message: Message): 
-#     await message.answer("Bad URL")
+@router.message(F.text.regexp(invalid_url_regex)) 
+async def bad_url(message: Message): 
+    await message.answer("Bad URL")
 
 # @router.message()
 # async def message(message: Message): 

@@ -7,17 +7,19 @@ from aiogram import Bot, Dispatcher
 from handlers import router
 
 
-# from config import settings
-from dotenv import load_dotenv
-load_dotenv()
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+from config import settings
+# from dotenv import load_dotenv
+# load_dotenv()
+# BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 # Initialize bot and dispatcher
 # if not settings.BOT_TOKEN:
 #     raise ValueError("BOT_TOKEN is missing")
+# bot = Bot(BOT_TOKEN)
 
-# bot = Bot(token=settings.BOT_TOKEN)
-bot = Bot(BOT_TOKEN)
+if not settings.BOT_TOKEN:
+    raise ValueError("BOT_TOKEN is missing")
+bot = Bot(token=settings.BOT_TOKEN)
 dp = Dispatcher()
 
 dp.include_router(router)

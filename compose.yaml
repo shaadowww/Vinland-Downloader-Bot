@@ -1,7 +1,10 @@
 services:
 
   bot:
-    image: senkuqq/vinland_bot:latest
+    image: vinland_bot
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports: 
       - "6767:6767"
@@ -14,7 +17,10 @@ services:
       - redis
 
   downloader:
-    image: senkuqq/vinland_downloader:latest
+    image: vinland_downloader
+    build:
+      context: ./bot/services
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports: 
       - "67:67"
@@ -27,19 +33,19 @@ services:
       - redis
       - bot
 
-  # postgres:
-  #   image: postgres:17
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5432:5432"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     POSTGRES_DB: ${DB_NAME}
-  #     POSTGRES_USER: ${DB_USERNAME}
-  #     POSTGRES_PASSWORD: ${DB_PASS}
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine

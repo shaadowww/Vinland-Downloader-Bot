@@ -8,14 +8,13 @@ import yt_downloader
 from enum import Enum
 import redis.asyncio as redis
 
-from json import loads
+from json import loads, dumps
 from aiogram import Bot
 from aiogram.types import FSInputFile
 from dotenv import load_dotenv
 
 
 # TODO
-# put queue to redis?
 # statuses of downloads
 # semaphore?
 logging.basicConfig(
@@ -23,21 +22,34 @@ logging.basicConfig(
     format="%(levelname)s [%(asctime)s] - %(message)s",
     datefmt="%H:%M:%S"
 )
+
+### REDIS CONFIG
+redis_client = redis.Redis(
+    host='redis', 
+    port=6379, 
+    decode_responses=True
+)
+
+# BOT CONFIG
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+if not BOT_TOKEN:
+    logging.critical("BOT_TOKEN not found in environment variables!")
+    raise ValueError("Bot token not found in /.env or /config.py")
+
 class FakeDownloader:
-    class Format(Enum):
-        VIDEO = 1
-        AUDIO = 2
         
     def __init__(self, bot: Bot, redis_client: redis.Redis,workers: int = 3):
         self.redis = redis_client
 
         self.bot = bot
         self.workers: int = workers
+        self.tasks = []
 
     async def start_workers(self):
         tasks = []
         for worker_id in range(self.workers):
-            tasks.append(asyncio.create_task(self.worker(worker_id)))
+            task = (asyncio.create_task(self.worker(worker_id)))
+            self.tasks.append(task)
 
         await asyncio.gather(*tasks)
         
@@ -47,8 +59,8 @@ class FakeDownloader:
         return result
     
     async def queue_get(self) -> str:
-        """Получает задачу из Redis очереди"""
-        # brpop атомарен, воркеры не будут воровать задачи друг у друга
+        """Get task from Redis queue"""
+        # brpop is atonomous, workers do not steal task from each other
         result = await self.redis.brpop("download_queue")
         return result[1] if result else None
 
@@ -63,15 +75,18 @@ class FakeDownloader:
                 if not raw_json:
                     continue
                 
-                # ИСПРАВЛЕНО: используем функцию loads напрямую
+                # parse json with details from Redis Queue
                 loaded = loads(raw_json)
+
+                # shutdown worker
+                if loaded.get("type") == "shutdown":
+                    logging.info(f"Worker {worker_id} stopping")
+                    break
+
                 chat_id = loaded["chat_id"]
                 url = loaded["url"]
                 quality = loaded["quality"]
                 media_format = loaded["format"]
-                
-                if chat_id is None: 
-                    break
 
                 logging.info(f"Worker {worker_id}: Downloading {url}")
                 is_audio = False
@@ -93,40 +108,42 @@ class FakeDownloader:
                     await self.bot.send_message(chat_id, "I can't download this video.\nSorry :(")
             
             except Exception as e:
-                # Глобальный try-catch защищает воркера от падения при плохой ссылке
+                # try catch to secure worker from bad url's
                 logging.error(f"Worker {worker_id}: Error occurred: {e}", exc_info=True)
                 try:
                     if 'chat_id' in locals():
                         await self.bot.send_message(chat_id, "An error occurred during downloading.")
                 except Exception:
                     pass
-            # ИСПРАВЛЕНО: Убран self.queue.task_done(), так как очереди больше нет
+
     async def shutdown(self) -> None:
         """
         Graceful workers shutdown 
         """
-        await self.queue.join()
+        for task in self.tasks:
+            task.cancel()
+
+        await asyncio.gather(
+            *self.tasks,
+            return_exceptions=True
+        )
+
+        # suggested by chatgpt
+        SENTINEL = {
+            "type": "shutdown"
+        }
 
         for _ in range(self.workers):
-            await self.queue.put((None,None,None)) # Sentinel for each worker to terminate
+            await self.redis.lpush(
+                "download_queue",
+                dumps(SENTINEL)
+            )
 
 async def main():
     logging.info("Initializing Vinland Downloader Backend...")
     load_dotenv()
-    
-    BOT_TOKEN = os.getenv('BOT_TOKEN')
-    if not BOT_TOKEN:
-        logging.critical("BOT_TOKEN not found in environment variables!")
-        return
 
-    
     bot = Bot(token=BOT_TOKEN)
-
-    redis_client = redis.Redis(
-        host='redis', 
-        port=6379, 
-        decode_responses=True
-    )
 
     downloader = FakeDownloader(bot, redis_client=redis_client, workers=3)
     
