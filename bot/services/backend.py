@@ -44,19 +44,20 @@ class FakeDownloader:
         self.bot = bot
         self.workers: int = workers
         self.tasks = []
+        self.active_downloads = {}
 
     async def start_workers(self):
         tasks = []
         for worker_id in range(self.workers):
-            task = (asyncio.create_task(self.worker(worker_id)))
+            task = asyncio.create_task(self.worker(worker_id))
             self.tasks.append(task)
 
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*self.tasks)
         
 
-    async def download(self, url, quality: int, is_audio: bool):
-        result = await asyncio.to_thread(yt_downloader.youtube_download, url, quality, is_audio)
-        return result
+    async def download(self, url, quality: int, is_audio: bool, chat_id: int):
+        file_path = await asyncio.to_thread(yt_downloader.youtube_download, url, quality, is_audio)
+        return file_path
     
     async def queue_get(self) -> str:
         """Get task from Redis queue"""
@@ -78,11 +79,6 @@ class FakeDownloader:
                 # parse json with details from Redis Queue
                 loaded = loads(raw_json)
 
-                # shutdown worker
-                if loaded.get("type") == "shutdown":
-                    logging.info(f"Worker {worker_id} stopping")
-                    break
-
                 chat_id = loaded["chat_id"]
                 url = loaded["url"]
                 quality = loaded["quality"]
@@ -92,8 +88,8 @@ class FakeDownloader:
                 is_audio = False
                 if media_format == 'audio':
                     is_audio = True
-                    
-                file_path = await self.download(url, quality, is_audio)
+
+                file_path = await self.download(url, quality, is_audio, chat_id)
                 logging.info(f"Worker {worker_id}: Downloaded! path - {file_path}")
 
                 if file_path and os.path.exists(file_path):
@@ -116,6 +112,13 @@ class FakeDownloader:
                 except Exception:
                     pass
 
+
+    async def cancel_downloads(self, chat_id: int):
+        task = self.active_downloads.get(chat_id).terminate()
+        if task:
+            task.cancel()
+            logging.info(f"task in {chat_id} canceled")
+
     async def shutdown(self) -> None:
         """
         Graceful workers shutdown 
@@ -128,17 +131,6 @@ class FakeDownloader:
             return_exceptions=True
         )
 
-        # suggested by chatgpt
-        SENTINEL = {
-            "type": "shutdown"
-        }
-
-        for _ in range(self.workers):
-            await self.redis.lpush(
-                "download_queue",
-                dumps(SENTINEL)
-            )
-
 async def main():
     logging.info("Initializing Vinland Downloader Backend...")
     load_dotenv()
@@ -149,7 +141,11 @@ async def main():
     
     try:
         await downloader.start_workers()
+    except asyncio.CancelledError:
+        logging.info("Main cancelled")
     finally:
+        logging.info("Shutting down downloader...")
+        await downloader.shutdown()
         await redis_client.aclose()
 
 if __name__ == "__main__": 

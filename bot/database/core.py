@@ -2,8 +2,8 @@
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models import Users
-from schemas import UserCreate, UserRead, UserUpdate
+from database.models import Users
+from database.schemas import UserCreate, UserRead, UserUpdate
 from typing import Optional, List
 
 async def upsert_user(session: AsyncSession, user_schema: UserCreate) -> UserRead:

@@ -17,9 +17,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.database.schemas import UserCreate, UserUpdate
-from bot.database.db_engines import sessionmaker
-from bot.database.core import set_user_active_status, update_user, upsert_user
+from database.schemas import UserCreate, UserUpdate
+from database.db_engines import sessionmaker
+from database.core import set_user_active_status, update_user, upsert_user
 
 valid_url_regex = r'(?<!\S)https://(?:www\.)?(?:[a-zA-Z0-9-]+\.)?(?:youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com)\S+'
 invalid_url_regex = r'^https://(?!(www\.)?([a-zA-Z0-9-]+\.)?(youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com))\S+'
@@ -165,8 +165,7 @@ async def format_selection_callback(
 # choose format via buttons
 
 @router.message(F.text.regexp(valid_url_regex))
-async def bot_add_task(message: Message): # add session: AsyncSession)
-    # try:
+async def bot_add_task(message: Message):
     await message.answer("Working on it...")
     await queue_add(
         message.chat.id,
@@ -174,6 +173,12 @@ async def bot_add_task(message: Message): # add session: AsyncSession)
         quality = 720,
         format = "audio"
         )
+    
+# cancel downloads
+@router.message(Command('cancel'))
+async def cancel_task(message: Message):
+    logging.info("cancel command")
+    ...
 
 # REDIS
 async def queue_add(chat_id: int, url: str, quality: int, format: str):

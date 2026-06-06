@@ -2,7 +2,9 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get purge -y --auto-remove && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install gcc -y && \
+    apt-get purge -y --auto-remove && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 

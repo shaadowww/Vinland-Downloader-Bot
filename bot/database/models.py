@@ -3,10 +3,10 @@
 
 from sqlalchemy import BigInteger, Boolean, String, text
 from sqlalchemy.orm import Mapped, mapped_column
-from db_engines import Base
+from database.db_engines import Base
 from datetime import datetime
 from enum import Enum
-from schemas import VideoQuality, DownloadFormat
+from database.schemas import VideoQuality, DownloadFormat
 
 class Users(Base):
     '''
