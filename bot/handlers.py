@@ -7,7 +7,6 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import Router , F, BaseMiddleware
 from aiogram.types import Message , CallbackQuery
 from aiogram.filters import Command
-import bot.keyboards as kb
 
 from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import CallbackQuery, Message
@@ -22,6 +21,7 @@ from database.db_engines import sessionmaker
 from database.core import set_user_active_status, update_user, upsert_user
 
 from bot.backend import FakeDownloader
+import bot.keyboards as kb
 
 valid_url_regex = os.getenv('VALID_URL_REGEX')
 invalid_url_regex = os.getenv('INVALID_URl_REGEX')
@@ -68,7 +68,7 @@ async def send_welcome(message: Message):
     # logging.info(f"Upsert result: {res}")
 
     await message.answer(
-        text="<b>Hi!\nI'm vinland downloader bot.n\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
+        text="<b>Hi!\nI'm Vinland downloader bot.n\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
         parse_mode="HTML",
         reply_markup=kb.work
         )
