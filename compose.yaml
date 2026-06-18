@@ -1,0 +1,57 @@
+services:
+
+  bot:
+    image: vinland_bot
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports: 
+      - "6767:6767"
+    env_file:
+      - .env
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    depends_on:
+      #- postgres
+      - redis
+
+  downloader:
+    image: vinland_downloader
+    build:
+      context: ./bot/services
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports: 
+      - "67:67"
+    env_file:
+      - .env
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    depends_on:
+      # - postgres
+      - redis
+      - bot
+
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports: 
+      - "6379:6379" 
+      
+volumes:
+  postgres_data:

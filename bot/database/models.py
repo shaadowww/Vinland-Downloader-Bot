@@ -6,16 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from database.db_engines import Base
 from datetime import datetime
 from enum import Enum
-
-class VideoQuality(str, Enum):
-    '''
-    `User Prefer Enum`
-    '''
-    P360 = "360p"
-    P480 = "480p"
-    P720 = "720p"
-    P1080 = "1080p"
-    ASK = "ask"
+from database.schemas import VideoQuality, DownloadFormat
 
 class Users(Base):
     '''
@@ -42,7 +33,11 @@ class Users(Base):
         default=VideoQuality.ASK,
         server_default=text("'ask'")
     )
-
+    download_format: Mapped[DownloadFormat] = mapped_column(
+        String(5),
+        default=DownloadFormat.VIDEO,
+        server_default=text("'audio'")
+    )
     is_active: Mapped[bool] = mapped_column(
         Boolean, 
         default=True, 

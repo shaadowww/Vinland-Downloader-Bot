@@ -1,31 +1,33 @@
 import logging
 import asyncio
+import os
 
 from aiogram import Bot, Dispatcher
 
-from bot.handlers import router
+from handlers import router
 
-from bot.backend import FakeDownloader
 
 from config import settings
+# from dotenv import load_dotenv
+# load_dotenv()
+# BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 # Initialize bot and dispatcher
+# if not settings.BOT_TOKEN:
+#     raise ValueError("BOT_TOKEN is missing")
+# bot = Bot(BOT_TOKEN)
+
 if not settings.BOT_TOKEN:
     raise ValueError("BOT_TOKEN is missing")
-
 bot = Bot(token=settings.BOT_TOKEN)
 dp = Dispatcher()
-downloader = FakeDownloader(workers=3, queue_size=10)
-
 
 dp.include_router(router)
 
 async def main():
-    asyncio.create_task(downloader.start_workers())
-    await dp.start_polling(bot, downloader=downloader)
-
+    await dp.start_polling(bot)
 if __name__ == '__main__':
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logging.info("The bot work is stopping...")
+        logging.debug("The bot work is stopping...")
