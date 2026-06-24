@@ -6,7 +6,7 @@ class QualityCallback(CallbackData, prefix="set_quality"):
     '''
     quality: str # 360p 480p 720p 1080p or ask
 
-class FormatCallback(CallbackData,prefix="set_format"):
+class FormatCallback(CallbackData, prefix="set_format"):
     '''
     Set the format for download
     '''

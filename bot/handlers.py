@@ -7,10 +7,7 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import Router , F, BaseMiddleware
 from aiogram.types import Message , CallbackQuery
 from aiogram.filters import Command
-<<<<<<< HEAD
-=======
 import keyboards as kb
->>>>>>> f719ee3befdef96dfbfb804bb22e6e377c466dc2
 
 from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import CallbackQuery, Message
@@ -24,16 +21,8 @@ from database.schemas import UserCreate, UserUpdate
 from database.db_engines import sessionmaker
 from database.core import set_user_active_status, update_user, upsert_user
 
-<<<<<<< HEAD
-from bot.backend import FakeDownloader
-import bot.keyboards as kb
-
-valid_url_regex = os.getenv('VALID_URL_REGEX')
-invalid_url_regex = os.getenv('INVALID_URl_REGEX')
-=======
 valid_url_regex = r'(?<!\S)https://(?:www\.)?(?:[a-zA-Z0-9-]+\.)?(?:youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com)\S+'
 invalid_url_regex = r'^https://(?!(www\.)?([a-zA-Z0-9-]+\.)?(youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com))\S+'
->>>>>>> f719ee3befdef96dfbfb804bb22e6e377c466dc2
 router = Router()
 
 # Configure logging
@@ -77,14 +66,8 @@ async def send_welcome(message: Message, session: AsyncSession):
     logging.info(f"Upsert result: {res}")
 
     await message.answer(
-<<<<<<< HEAD
-        text="<b>Hi!\nI'm Vinland downloader bot.n\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
-        parse_mode="HTML",
-        reply_markup=kb.work
-=======
         text="<b>Hi!\nI'm vinland downloader bot.\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
         parse_mode="HTML"
->>>>>>> f719ee3befdef96dfbfb804bb22e6e377c466dc2
         )
     
 
@@ -116,17 +99,18 @@ async def show_settings(msg: Message):
 
     for q in ["360p", "480p", "720p", "1080p"]:
         builder.button(text=q, callback_data=kb.QualityCallback(quality=q))
-        builder.button(text="Audio", callback_data=kb.FormatCallback(format="audio"))
-        builder.button(text="Video", callback_data=kb.FormatCallback(format="video"))
-        builder.button(text="Always Ask", callback_data=kb.QualityCallback(quality="ask"))
 
-        builder.adjust(4, 2, 1)
+    builder.button(text="Audio", callback_data=kb.FormatCallback(format="audio"))
+    builder.button(text="Video", callback_data=kb.FormatCallback(format="video"))
+    builder.button(text="Always Ask", callback_data=kb.QualityCallback(quality="ask"))
 
-        await msg.answer(
-            text="<b>⚙️ Settings</b>\n\nSelect your default video download quality:",
-            reply_markup=builder.as_markup(),
-            parse_mode="HTML"
-        )
+    builder.adjust(4, 2, 1)
+
+    await msg.answer(
+        text="<b>⚙️ Settings</b>\n\nSelect your default video download quality:",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
 
 
 @router.callback_query(kb.QualityCallback.filter())
