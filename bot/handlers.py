@@ -5,7 +5,7 @@ from json import dumps
 from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import Router , F, BaseMiddleware
-from aiogram.types import Message , CallbackQuery
+from aiogram.types import InlineKeyboardMarkup, Message , CallbackQuery
 from aiogram.filters import Command
 import bot.keyboards as kb
 
@@ -20,7 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from bot.database.schemas import UserCreate, UserUpdate
 from bot.database.db_engines import sessionmaker
-from bot.database.core import set_user_active_status, update_user, upsert_user
+from bot.database.core import get_user, update_user, upsert_user
 
 valid_url_regex = r'(?<!\S)https://(?:www\.)?(?:[a-zA-Z0-9-]+\.)?(?:youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com)\S+'
 invalid_url_regex = r'^https://(?!(www\.)?([a-zA-Z0-9-]+\.)?(youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com))\S+'
@@ -93,26 +93,44 @@ async def send_help(msg: Message):
 
     await msg.answer(help_text, parse_mode="HTML")
 
-@router.message(Command('settings'))
-async def show_settings(msg: Message):
-    """
-    Displays configuration menu `/settings`
-    """
+def settings_keyboard(current_quality: str, current_format: str) -> InlineKeyboardMarkup:
+    """Get settings keyboard"""
 
     builder = InlineKeyboardBuilder()
 
     for q in ["360p", "480p", "720p", "1080p"]:
-        builder.button(text=q, callback_data=kb.QualityCallback(quality=q))
+        text = f"✅ {q}" if current_quality == q else q
+        builder.button(text=text, callback_data=kb.QualityCallback(quality=q))
 
-    builder.button(text="Audio", callback_data=kb.FormatCallback(format="audio")) # падает при нажатии на Audio
-    builder.button(text="Video", callback_data=kb.FormatCallback(format="video")) # падает при нажатии на Video
-    builder.button(text="Always Ask", callback_data=kb.QualityCallback(quality="ask"))
+    # text variables
+    audio_text = "✅ Audio" if current_format == "audio" else "Audio" 
+    video_text = "✅ Video" if current_format == "video" else "Video"
+    ask_text = "✅ Always Ask" if current_quality == "ask" else "Always Ask"
+
+
+    builder.button(text=audio_text, callback_data=kb.FormatCallback(format="audio"))
+    builder.button(text=video_text, callback_data=kb.FormatCallback(format="video"))
+    builder.button(text=ask_text, callback_data=kb.QualityCallback(quality="ask"))
 
     builder.adjust(4, 2, 1)
+    return builder.as_markup()
+
+@router.message(Command('settings'))
+async def show_settings(msg: Message, session: AsyncSession):
+    """
+    Displays configuration menu `/settings`
+    """
+    telegram_id = msg.from_user.id
+    user = await get_user(session, telegram_id)
+
+    current_quality = user.download_quality if user else "ask"
+    current_format = user.download_format if user else "audio"
+
+    keyboard = settings_keyboard(current_quality, current_format)
 
     await msg.answer(
         text="<b>⚙️ Settings</b>\n\nSelect your default video download quality:",
-        reply_markup=builder.as_markup(),
+        reply_markup=keyboard,
         parse_mode="HTML"
     )
 
@@ -132,16 +150,19 @@ async def quality_selection_callback(
         download_quality=callback_data.quality
     )
 
-    await update_user(session, telegram_id, selected_quality)
+    updated_user = await update_user(session, telegram_id, selected_quality)
 
     await callback.answer(
         text=f"Quality set to {callback_data.quality}"
     )
 
-    readable_quality = "Always ask" if callback_data.quality == "ask" else callback_data.quality
-    await callback.message.edit_text(
-        text=f"<b> ✓ Settings Saved</b>\n\nDefault download quality updated to: <b>{readable_quality}</b>",
-        parse_mode="HTML"
+    current_quality = updated_user.download_quality if updated_user else callback_data.quality
+    current_format = updated_user.download_format if updated_user else "audio"
+
+    keyboard = settings_keyboard(current_quality, current_format)
+
+    await callback.message.edit_reply_markup(
+        reply_markup=keyboard
     )
 
 @router.callback_query(kb.FormatCallback.filter())
@@ -155,16 +176,21 @@ async def format_selection_callback(
     """
     telegram_id = callback.from_user.id
     selected_format = UserUpdate(
-        download_format=callback.data.format 
+        download_format=callback_data.format
     )
     
-    await update_user(session, telegram_id, selected_format)
+    updated_user = await update_user(session, telegram_id, selected_format)
     await callback.answer(text=f"format set to {callback_data.format}")
-    
-    await callback.message.edit_text(
-        text=f"<b> ✓ Settings Saved</b>\n\nDefault format updated to: <b>{callback_data.format.upper()}</b>",
-        parse_mode="HTML"
+
+    current_quality = updated_user.download_quality if updated_user else callback_data.quality
+    current_format = updated_user.download_format if updated_user else "audio"
+
+    keyboard = settings_keyboard(current_quality, current_format)
+
+    await callback.message.edit_reply_markup(
+        reply_markup=keyboard
     )
+    
 # TODO
 # add animation to waiting message...
 # choose format via buttons
