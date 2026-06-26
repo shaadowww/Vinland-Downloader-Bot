@@ -7,7 +7,7 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import Router , F, BaseMiddleware
 from aiogram.types import Message , CallbackQuery
 from aiogram.filters import Command
-import keyboards as kb
+import bot.keyboards as kb
 
 from aiogram.exceptions import TelegramForbiddenError
 from aiogram.types import CallbackQuery, Message
@@ -16,10 +16,11 @@ from aiogram.types import FSInputFile, TelegramObject
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 
-from database.schemas import UserCreate, UserUpdate
-from database.db_engines import sessionmaker
-from database.core import set_user_active_status, update_user, upsert_user
+from bot.database.schemas import UserCreate, UserUpdate
+from bot.database.db_engines import sessionmaker
+from bot.database.core import set_user_active_status, update_user, upsert_user
 
 valid_url_regex = r'(?<!\S)https://(?:www\.)?(?:[a-zA-Z0-9-]+\.)?(?:youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com)\S+'
 invalid_url_regex = r'^https://(?!(www\.)?([a-zA-Z0-9-]+\.)?(youtube\.com|youtu\.be|soundcloud\.com|on\.soundcloud\.com))\S+'
@@ -58,12 +59,15 @@ async def send_welcome(message: Message, session: AsyncSession):
     """
     Welcome message on `/start`
     """
-    user = UserCreate(
-        telegram_id=message.from_user.id,
-        username=message.from_user.username
-    )
-    res = await upsert_user(session, user)
-    logging.info(f"Upsert result: {res}")
+    try:
+        user = UserCreate(
+            telegram_id=message.from_user.id,
+            username=message.from_user.username
+        )
+        res = await upsert_user(session, user)
+        logging.info(f"Upsert result: {res}")
+    except SQLAlchemyError as e:
+        logging.error(f"Unexpected SQLAlchemy error: {str(e)}")
 
     await message.answer(
         text="<b>Hi!\nI'm vinland downloader bot.\n🏞️ I'll help you to download video/music from Youtube/Soundcloud</b>",
@@ -91,17 +95,17 @@ async def send_help(msg: Message):
 
 @router.message(Command('settings'))
 async def show_settings(msg: Message):
-    '''
+    """
     Displays configuration menu `/settings`
-    '''
+    """
 
     builder = InlineKeyboardBuilder()
 
     for q in ["360p", "480p", "720p", "1080p"]:
         builder.button(text=q, callback_data=kb.QualityCallback(quality=q))
 
-    builder.button(text="Audio", callback_data=kb.FormatCallback(format="audio"))
-    builder.button(text="Video", callback_data=kb.FormatCallback(format="video"))
+    builder.button(text="Audio", callback_data=kb.FormatCallback(format="audio")) # падает при нажатии на Audio
+    builder.button(text="Video", callback_data=kb.FormatCallback(format="video")) # падает при нажатии на Video
     builder.button(text="Always Ask", callback_data=kb.QualityCallback(quality="ask"))
 
     builder.adjust(4, 2, 1)
@@ -119,9 +123,9 @@ async def quality_selection_callback(
     callback_data: kb.QualityCallback,
     session: AsyncSession
 ):
-    '''
+    """
     Processing quality callback selection
-    '''
+    """
 
     telegram_id = callback.from_user.id
     selected_quality = UserUpdate(
@@ -146,9 +150,9 @@ async def format_selection_callback(
     callback_data: kb.FormatCallback,
     session: AsyncSession
     ):
-    '''
+    """
     Processing format callback selection
-    '''
+    """
     telegram_id = callback.from_user.id
     selected_format = UserUpdate(
         download_format=callback.data.format 

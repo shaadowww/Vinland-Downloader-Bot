@@ -3,15 +3,15 @@
 
 from sqlalchemy import BigInteger, Boolean, String, text
 from sqlalchemy.orm import Mapped, mapped_column
-from database.db_engines import Base
+from bot.database.db_engines import Base
+from bot.database.schemas import VideoQuality, DownloadFormat
 from datetime import datetime
-from enum import Enum
-from database.schemas import VideoQuality, DownloadFormat
+
 
 class Users(Base):
-    '''
-    ### Main User Table storing data about users
-    '''
+    """
+    Main User Table storing data about users
+    """
 
     __tablename__ = "users"
 
