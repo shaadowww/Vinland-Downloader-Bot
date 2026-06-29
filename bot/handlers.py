@@ -105,14 +105,16 @@ def settings_keyboard(current_quality: str, current_format: str) -> InlineKeyboa
     # text variables
     audio_text = "✅ Audio" if current_format == "audio" else "Audio" 
     video_text = "✅ Video" if current_format == "video" else "Video"
+    both_text = "✅ Both" if current_format == "both" else "Both"
     ask_text = "✅ Always Ask" if current_quality == "ask" else "Always Ask"
 
 
     builder.button(text=audio_text, callback_data=kb.FormatCallback(format="audio"))
     builder.button(text=video_text, callback_data=kb.FormatCallback(format="video"))
+    builder.button(text=both_text, callback_data=kb.FormatCallback(format="both"))
     builder.button(text=ask_text, callback_data=kb.QualityCallback(quality="ask"))
 
-    builder.adjust(4, 2, 1)
+    builder.adjust(4, 3, 1)
     return builder.as_markup()
 
 @router.message(Command('settings'))
@@ -180,7 +182,7 @@ async def format_selection_callback(
     )
     
     updated_user = await update_user(session, telegram_id, selected_format)
-    await callback.answer(text=f"format set to {callback_data.format}")
+    await callback.answer(text=f"Format set to {callback_data.format}")
 
     current_quality = updated_user.download_quality if updated_user else callback_data.quality
     current_format = updated_user.download_format if updated_user else "audio"

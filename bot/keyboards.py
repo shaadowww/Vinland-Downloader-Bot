@@ -8,7 +8,7 @@ class QualityCallback(CallbackData, prefix="set_quality"):
 class FormatCallback(CallbackData, prefix="set_format"):
     """Set the format for download"""
     
-    format: str # audio, video
+    format: str # audio, video, both
 
 from aiogram.types import  InlineKeyboardMarkup , InlineKeyboardButton
 

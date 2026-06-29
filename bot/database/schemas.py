@@ -19,6 +19,7 @@ class VideoQuality(str, Enum):
 class DownloadFormat(str, Enum):
     AUDIO = "audio"
     VIDEO = "video"
+    BOTH = "both"
 
 class UserBase(BaseModel):
     
