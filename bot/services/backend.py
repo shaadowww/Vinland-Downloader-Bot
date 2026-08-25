@@ -1,9 +1,5 @@
-from typing import Optional
-
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import logging
-import os
 import yt_downloader
 from enum import Enum
 import redis.asyncio as redis
@@ -31,8 +27,7 @@ redis_client = redis.Redis(
 )
 
 # BOT CONFIG
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-if not BOT_TOKEN:
+if not settings.BOT_TOKEN:
     logging.critical("BOT_TOKEN not found in environment variables!")
     raise ValueError("Bot token not found in /.env or /config.py")
 
