@@ -1,9 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    '''
-    ### Store and validation environment data
-    '''
+    """Store and validation environment data"""
     
     BOT_TOKEN: str
     DB_HOST: str
