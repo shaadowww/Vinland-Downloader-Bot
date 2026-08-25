@@ -19,7 +19,6 @@ services:
       context: ./bot/services
       dockerfile: dockerfile
     restart: unless-stopped
-    # Порт 67 не нужен — воркер общается с базой и редисом внутри docker-сети
     env_file:
       - .env
     depends_on:
