@@ -1,10 +1,10 @@
 import asyncio
 import logging
+import os
 import yt_downloader
-from enum import Enum
 import redis.asyncio as redis
 
-from json import loads, dumps
+from json import loads
 from aiogram import Bot
 from aiogram.types import FSInputFile
 from dotenv import load_dotenv
@@ -130,7 +130,7 @@ async def main():
     logging.info("Initializing Vinland Downloader Backend...")
     load_dotenv()
 
-    bot = Bot(token=BOT_TOKEN)
+    bot = Bot(token=settings.BOT_TOKEN)
 
     downloader = FakeDownloader(bot, redis_client=redis_client, workers=3)
     
