@@ -9,14 +9,7 @@ from bot.handlers import router
 
 from bot.config import settings
 
-# from dotenv import load_dotenv
-# load_dotenv()
-# BOT_TOKEN = os.getenv('BOT_TOKEN')
-
 # Initialize bot and dispatcher
-# if not settings.BOT_TOKEN:
-#     raise ValueError("BOT_TOKEN is missing")
-# bot = Bot(BOT_TOKEN)
 
 if not settings.BOT_TOKEN:
     raise ValueError("BOT_TOKEN is missing")
