@@ -8,7 +8,7 @@ from json import loads, dumps
 from aiogram import Bot
 from aiogram.types import FSInputFile
 from dotenv import load_dotenv
-
+from bot.config import settings
 
 # TODO
 # statuses of downloads
