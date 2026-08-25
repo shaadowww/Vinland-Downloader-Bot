@@ -5,15 +5,12 @@ from json import dumps
 from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import Router , F, BaseMiddleware
-from aiogram.types import InlineKeyboardMarkup, Message , CallbackQuery
+from aiogram.types import Message , CallbackQuery
 from aiogram.filters import Command
-import bot.keyboards as kb
-
-from aiogram.exceptions import TelegramForbiddenError
+from bot.keyboards import *
 from aiogram.types import CallbackQuery, Message
 from aiogram.filters import Command
-from aiogram.types import FSInputFile, TelegramObject
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import TelegramObject
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
@@ -93,30 +90,6 @@ async def send_help(msg: Message):
 
     await msg.answer(help_text, parse_mode="HTML")
 
-def settings_keyboard(current_quality: str, current_format: str) -> InlineKeyboardMarkup:
-    """Get settings keyboard"""
-
-    builder = InlineKeyboardBuilder()
-
-    for q in ["360p", "480p", "720p", "1080p"]:
-        text = f"✅ {q}" if current_quality == q else q
-        builder.button(text=text, callback_data=kb.QualityCallback(quality=q))
-
-    # text variables
-    audio_text = "✅ Audio" if current_format == "audio" else "Audio" 
-    video_text = "✅ Video" if current_format == "video" else "Video"
-    both_text = "✅ Both" if current_format == "both" else "Both"
-    ask_text = "✅ Always Ask" if current_quality == "ask" else "Always Ask"
-
-
-    builder.button(text=audio_text, callback_data=kb.FormatCallback(format="audio"))
-    builder.button(text=video_text, callback_data=kb.FormatCallback(format="video"))
-    builder.button(text=both_text, callback_data=kb.FormatCallback(format="both"))
-    builder.button(text=ask_text, callback_data=kb.QualityCallback(quality="ask"))
-
-    builder.adjust(4, 3, 1)
-    return builder.as_markup()
-
 @router.message(Command('settings'))
 async def show_settings(msg: Message, session: AsyncSession):
     """
@@ -137,10 +110,10 @@ async def show_settings(msg: Message, session: AsyncSession):
     )
 
 
-@router.callback_query(kb.QualityCallback.filter())
+@router.callback_query(QualityCallback.filter())
 async def quality_selection_callback(
     callback: CallbackQuery,
-    callback_data: kb.QualityCallback,
+    callback_data: QualityCallback,
     session: AsyncSession
 ):
     """
@@ -167,10 +140,10 @@ async def quality_selection_callback(
         reply_markup=keyboard
     )
 
-@router.callback_query(kb.FormatCallback.filter())
+@router.callback_query(FormatCallback.filter())
 async def format_selection_callback(
     callback: CallbackQuery,
-    callback_data: kb.FormatCallback,
+    callback_data: FormatCallback,
     session: AsyncSession
     ):
     """
